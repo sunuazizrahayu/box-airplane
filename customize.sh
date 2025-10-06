@@ -10,7 +10,6 @@ if ! command -v busybox &> /dev/null; then
   abort "BusyBox not found. Please install BusyBox first!"
 fi
 
-unzip -o "${ZIPFILE}" -x 'META-INF/*' -d $MODPATH >&2
 if [ "${api_level}" -ge 26 ]; then
   case "${arch}" in
     "arm64-v8a")
@@ -26,7 +25,7 @@ if [ "${api_level}" -ge 26 ]; then
       url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/refs/heads/master/curl/dynamic/curl-x86"
       ;;
     *)
-      echo "Unknown architecture: ${arch}"
+      abort "Unknown architecture: ${arch}"
       ;;
   esac
 else
@@ -44,14 +43,22 @@ else
       url="https://raw.githubusercontent.com/Zackptg5/Cross-Compiled-Binaries-Android/refs/heads/master/curl/curl-x86"
       ;;
     *)
-      echo "Unknown architecture: ${arch}"
+      abort "Unknown architecture: ${arch}"
       ;;
   esac
 fi
 
+
+module_dir="/data/adb/modules/box-airplane"
+
+ui_print "- Extracting module"
+unzip -o "${ZIPFILE}" -x 'META-INF/*' -d $MODPATH >&2
+
+
 ui_print "- Device architecture: ${arch}"
 ui_print "- Getting curl for architecture ${arch}"
 busybox wget -qO ${MODPATH}/curl ${url}
+[ -f ${MODPATH}/curl ] || abort "curl binary download failed!"
 
 ui_print "- Set permissions"
 set_perm ${MODPATH}/curl 0 0 0755
@@ -62,5 +69,16 @@ set_perm ${MODPATH}/action.sh 0 0 0755
 set_perm ${MODPATH}/service.sh 0 0 0755
 set_perm ${MODPATH}/sepolicy.rule 0 0 0644
 
+if [ -f "${module_dir}/config.ini" ]; then
+  ui_print "- Restore config"
+  cp "${module_dir}/config.ini" "${MODPATH}/config.ini"
+fi
+
+
 ui_print "- Force enable module..."
 rm -Rf ${MODPATH}/disable
+
+# apply update
+if [ -d $module_dir ]; then
+  ui_print "- Reboot your device to apply the update."
+fi
