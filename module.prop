@@ -1,0 +1,6 @@
+id=modpes
+name=Auto Airplane Mode BFR
+version=FINAL
+versionCode=999
+author=JeelsBoobz
+description=[state] Auto Airplane Mode if no internet connection for BFR

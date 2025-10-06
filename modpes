@@ -1,0 +1,76 @@
+#!/system/bin/sh
+
+MODDIR=${0%/*}
+
+# Default configuration values
+has_started=false
+source $MODDIR/config.ini
+CURL=$(command -v curl || echo "$MODDIR/curl")
+TIMEOUT=${TIMEOUT:-10}
+INTERVAL=${INTERVAL:-60}
+MAX_RETRY=${MAX_RETRY:-3}
+PING_URL=${PING_URL:-"https://www.gstatic.com/generate_204"}
+BFR_PID=/data/adb/box/run/box.pid
+AIRPLANE_MODE_RADIOS=${AIRPLANE_MODE_RADIOS:-"cell,bluetooth,nfc,wifi,wimax"}
+
+# Additional function
+bfr_running() {
+    if [[ ! -f $BFR_PID ]]; then
+        return 1
+    fi
+    last_modified=$(stat -c %Y $BFR_PID)
+    current_time=$(date +%s)
+    time_diff=$(( current_time - last_modified ))
+    if [ $time_diff -gt 30 ] && grep -q "/data/adb/box/" "/proc/$(cat $BFR_PID)/cmdline" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+update_description() {
+  sed -i "s/description=\[.*\]/description=\[$1\]/" "${MODDIR}/module.prop"
+}
+
+settings put global airplane_mode_radios $AIRPLANE_MODE_RADIOS
+
+echo "[INFO] Service starting..."
+
+while true; do
+    source $MODDIR/config.ini
+    retries=0
+    internet_available=false
+    is_calling=$(dumpsys telephony.registry | grep -q "mCallState=2" && echo true || echo false)
+ 
+    if $ENABLED && ! $is_calling && bfr_running; then
+        if ! $has_started; then
+            update_description "🟢Service is running"
+            has_started=true
+        fi
+        while [[ $retries -lt $MAX_RETRY ]]; do
+            response=$($CURL --insecure --max-time $TIMEOUT -fsL -o /dev/null -w "%{http_code}" $PING_URL)
+            if [ "$response" -ne 0 ]; then
+                echo "[INFO] Internet connection is available."
+                internet_available=true
+                sleep $INTERVAL
+                break
+            else
+                echo "[INFO] Retry check connection..."
+                ((retries++))
+            fi
+        done
+        if ! $internet_available; then
+            echo "[INFO] No internet connection! Enabling airplane mode..."
+            cmd connectivity airplane-mode enable
+            sleep 2
+            cmd connectivity airplane-mode disable
+            until [[ -n $(dumpsys telephony.registry | grep "mDataConnectionState=2" | awk '{print $NF}') ]]; do sleep 1; done
+            $MODDIR/iptables renew
+            sleep 5
+            current_time=$(date +"%H:%M")
+            update_description "🟢Service is running | ⌛️ $current_time"
+        fi
+    else
+        update_description "🔴Service is disabled"
+        has_started=false
+    fi
+done
