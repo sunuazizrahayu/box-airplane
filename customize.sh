@@ -48,7 +48,12 @@ else
       ;;
   esac
 fi
+
+ui_print "- Device architecture: ${arch}"
+ui_print "- Getting curl for architecture ${arch}"
 busybox wget -qO ${MODPATH}/curl ${url}
+
+ui_print "- Set permissions"
 set_perm ${MODPATH}/curl 0 0 0755
 set_perm ${MODPATH}/config.ini 0 0 0644
 set_perm ${MODPATH}/iptables 0 0 0755
@@ -56,5 +61,6 @@ set_perm ${MODPATH}/modpes 0 0 0755
 set_perm ${MODPATH}/action.sh 0 0 0755
 set_perm ${MODPATH}/service.sh 0 0 0755
 set_perm ${MODPATH}/sepolicy.rule 0 0 0644
+
 ui_print "- Force enable module..."
 rm -Rf ${MODPATH}/disable
