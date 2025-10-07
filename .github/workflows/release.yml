@@ -143,7 +143,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.ref_name }} build/${{ env.ZIP_NAME }} build/update.json build/CHANGELOG.md --clobber
+          gh release upload ${{ github.ref_name }} build/${{ env.ZIP_NAME }} --clobber
+          gh release upload ${{ github.ref_name }} build/update.json --clobber
+          gh release upload ${{ github.ref_name }} build/CHANGELOG.md --clobber
 
 
       # Step 11: Commit UPDATE
