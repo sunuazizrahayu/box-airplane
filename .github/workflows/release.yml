@@ -134,7 +134,7 @@ jobs:
           }
           EOF
 
-          echo "Result:"
+          echo "update.json Result:"
           cat update.json
           mv update.json build/
 
