@@ -125,7 +125,10 @@ jobs:
           fi
 
           # update data
+          echo $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/update.json
           wget -q $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/update.json || echo '{"version": "", "versionCode": "", "zipUrl": "", "changelog": ""}' > update.json
+          cat update.json
+
           UPDATE_JSON_FILE="update.json"
           sed -i "s|\"version\": \".*\"|\"version\": \"$VERSION\"|" $UPDATE_JSON_FILE
           sed -i "s|\"versionCode\": \".*\"|\"versionCode\": \"$VERSION_CODE\"|" $UPDATE_JSON_FILE
@@ -145,9 +148,11 @@ jobs:
           gh auth login --with-token <<< "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
 
           # upload release
-          gh release upload ${{ github.ref_name }} build/${{ env.ZIP_NAME }} --clobber
-          gh release upload ${{ github.ref_name }} build/update.json --clobber
-          gh release upload ${{ github.ref_name }} build/CHANGELOG.md --clobber
+          #gh release upload ${{ github.ref_name }} build/${{ env.ZIP_NAME }} --clobber
+          #gh release upload ${{ github.ref_name }} build/update.json --clobber
+          #gh release upload ${{ github.ref_name }} build/CHANGELOG.md --clobber
+
+          gh release upload ${{ github.ref_name }} build/* --clobber
 
 
       # Step 11: Commit UPDATE
