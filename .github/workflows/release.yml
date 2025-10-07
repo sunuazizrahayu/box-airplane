@@ -140,9 +140,11 @@ jobs:
       # Release: Upload asset ke release
       - name: Upload asset to existing release
         if: env.RELEASE_EXISTS != ''
-        env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
+          # Login dengan token GitHub CLI
+          gh auth login --with-token <<< "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+
+          # upload release
           gh release upload ${{ github.ref_name }} build/${{ env.ZIP_NAME }} --clobber
           gh release upload ${{ github.ref_name }} build/update.json --clobber
           gh release upload ${{ github.ref_name }} build/CHANGELOG.md --clobber
