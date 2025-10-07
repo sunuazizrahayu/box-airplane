@@ -54,7 +54,7 @@ jobs:
           BUILD_DATE=$(date +"%Y-%m-%d %H:%M:%S")
           BUILD_TIMESTAMP=$(date +%s)
           VERSION_STRING="${{ github.ref_name }} ($BUILD_DATE)"
-          VERSION_CODE="$UNIX_TIMESTAMP"
+          VERSION_CODE="$BUILD_TIMESTAMP"
 
 
           # Set version
