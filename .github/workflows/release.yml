@@ -118,11 +118,17 @@ jobs:
           VERSION=$(grep 'version=' $MODULE_PROP | cut -d '=' -f 2)
           VERSION_CODE=$(grep 'versionCode=' $MODULE_PROP | cut -d '=' -f 2)
           DLURL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/${{ github.ref_name }}/${{ env.ZIP_NAME }}"
-          CHANGEURL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/raw/main/CHANGELOG.md"
+          CHANGEURL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/CHANGELOG.md"
 
           if [ -z "$VERSION" ]; then
             VERSION="${{ github.ref_name }}"
           fi
+
+          echo "test data"
+          echo "VERSION: $VERSION"
+          echo "VERSION_CODE: $VERSION_CODE"
+          echo "DLURL: $DLURL"
+          echo "CHANGELOG: $CHANGEURL"
 
           # update.json
           cat > update.json <<EOF
