@@ -4,13 +4,14 @@ MODDIR=${0%/*}
 
 # Default configuration values
 has_started=false
-source $MODDIR/config.ini
 CURL=$(command -v curl || echo "$MODDIR/curl")
+BFR_PID=/data/adb/box/run/box.pid
+log_file="$MODDIR/modpes.log"
+source $MODDIR/config.ini
 TIMEOUT=${TIMEOUT:-10}
 INTERVAL=${INTERVAL:-60}
 MAX_RETRY=${MAX_RETRY:-3}
 PING_URL=${PING_URL:-"https://www.gstatic.com/generate_204"}
-BFR_PID=/data/adb/box/run/box.pid
 AIRPLANE_MODE_RADIOS=${AIRPLANE_MODE_RADIOS:-"cell,bluetooth,nfc,wifi,wimax"}
 
 # Additional function
@@ -31,9 +32,14 @@ update_description() {
   sed -i "s/description=\[.*\]/description=\[$1\]/" "${MODDIR}/module.prop"
 }
 
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$log_file"
+}
+
+
 settings put global airplane_mode_radios $AIRPLANE_MODE_RADIOS
 
-echo "[INFO] Service starting..."
+log_message "[INFO] Service starting..."
 
 while true; do
     source $MODDIR/config.ini
@@ -43,23 +49,23 @@ while true; do
  
     if $ENABLED && ! $is_calling && bfr_running; then
         if ! $has_started; then
-            update_description "🟢Service is running"
+            update_description "⭕ service is running"
             has_started=true
         fi
         while [[ $retries -lt $MAX_RETRY ]]; do
             response=$($CURL --insecure --max-time $TIMEOUT -fsL -o /dev/null -w "%{http_code}" $PING_URL)
             if [ "$response" -ne 0 ]; then
-                echo "[INFO] Internet connection is available."
+                log_message "[INFO] Internet connection is available."
                 internet_available=true
                 sleep $INTERVAL
                 break
             else
-                echo "[INFO] Retry check connection..."
+                log_message "[INFO] Retry check connection..."
                 ((retries++))
             fi
         done
         if ! $internet_available; then
-            echo "[INFO] No internet connection! Enabling airplane mode..."
+            log_message "[INFO] No internet connection! Enabling airplane mode..."
             cmd connectivity airplane-mode enable
             sleep 2
             cmd connectivity airplane-mode disable
@@ -67,10 +73,13 @@ while true; do
             $MODDIR/iptables renew
             sleep 5
             current_time=$(date +"%H:%M")
-            update_description "🟢Service is running | ⌛️ $current_time"
+            update_description "⭕ service is running | ⌛️ $current_time"
         fi
     else
-        update_description "🔴Service is disabled"
+        update_description "⚠️ service not running"
         has_started=false
+        
+        log_message "[INFO] Service not running"
+        sleep 1
     fi
 done
