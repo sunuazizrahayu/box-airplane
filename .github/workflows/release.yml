@@ -124,12 +124,6 @@ jobs:
             VERSION="${{ github.ref_name }}"
           fi
 
-          echo "test data"
-          echo "VERSION: $VERSION"
-          echo "VERSION_CODE: $VERSION_CODE"
-          echo "DLURL: $DLURL"
-          echo "CHANGELOG: $CHANGEURL"
-
           # update.json
           cat > update.json <<EOF
           {
