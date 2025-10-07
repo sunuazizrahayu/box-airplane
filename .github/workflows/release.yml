@@ -141,7 +141,7 @@ jobs:
       - name: Upload asset to existing release
         if: env.RELEASE_EXISTS != ''
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           gh release upload ${{ github.ref_name }} build/${{ env.ZIP_NAME }} --clobber
           gh release upload ${{ github.ref_name }} build/update.json --clobber
