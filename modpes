@@ -14,7 +14,8 @@ MAX_RETRY=${MAX_RETRY:-3}
 PING_URL=${PING_URL:-"https://www.gstatic.com/generate_204"}
 AIRPLANE_MODE_RADIOS=${AIRPLANE_MODE_RADIOS:-"cell,bluetooth,nfc,wifi,wimax"}
 
-# Additional function
+
+# --- Functions ---
 bfr_running() {
     if [[ ! -f $BFR_PID ]]; then
         return 1
@@ -37,10 +38,10 @@ log_message() {
 }
 
 
+# Set airplane mode radios
 settings put global airplane_mode_radios $AIRPLANE_MODE_RADIOS
 
-log_message "[INFO] Service starting..."
-
+# --- Run Main Loop ---
 while true; do
     source $MODDIR/config.ini
     retries=0
@@ -49,9 +50,10 @@ while true; do
  
     if $ENABLED && ! $is_calling && bfr_running; then
         if ! $has_started; then
-            update_description "⭕ service is running"
+            update_description "🚀 Service is running"
             has_started=true
         fi
+
         while [[ $retries -lt $MAX_RETRY ]]; do
             response=$($CURL --insecure --max-time $TIMEOUT -fsL -o /dev/null -w "%{http_code}" $PING_URL)
             if [ "$response" -ne 0 ]; then
@@ -60,26 +62,30 @@ while true; do
                 sleep $INTERVAL
                 break
             else
-                log_message "[INFO] Retry check connection..."
+                log_message "[WARN] Retry check connection..."
                 ((retries++))
+                sleep 1
             fi
         done
+
         if ! $internet_available; then
             log_message "[INFO] No internet connection! Enabling airplane mode..."
             cmd connectivity airplane-mode enable
-            sleep 2
+            #sleep 2
             cmd connectivity airplane-mode disable
+            log_message "[INFO] Wait until mobile data active..."
             until [[ -n $(dumpsys telephony.registry | grep "mDataConnectionState=2" | awk '{print $NF}') ]]; do sleep 1; done
+            log_message "[INFO] Renewing iptables"
             $MODDIR/iptables renew
-            sleep 5
+            #sleep 5
+
             current_time=$(date +"%H:%M")
-            update_description "⭕ service is running | ⌛️ $current_time"
+            update_description "🚀 Service is running | ⌛️ $current_time"
+            log_message "[INFO] Re-check connection..."
         fi
     else
-        update_description "⚠️ service not running"
-        has_started=false
-        
-        log_message "[INFO] Service not running"
-        sleep 1
+        update_description "⚠️ Service not running"
+        log_message "[WARN] Service not running"
+        sleep 2
     fi
 done
