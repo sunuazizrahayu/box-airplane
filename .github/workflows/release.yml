@@ -51,9 +51,9 @@ jobs:
       - name: Update module.prop
         run: |
           # Build Info
-          BUILD_DATE=$(date +"%Y-%m-%d %H:%M:%S")
+          BUILD_DATE=$(TZ='Asia/Jakarta' date +"%Y-%m-%d %H:%M:%S")
           BUILD_TIMESTAMP=$(date +%s)
-          VERSION_STRING="${{ github.ref_name }} ($BUILD_DATE)"
+          VERSION_STRING="${{ github.ref_name }} ($BUILD_DATE GMT+7)"
           VERSION_CODE="$BUILD_TIMESTAMP"
 
 
