@@ -124,11 +124,6 @@ jobs:
             VERSION="${{ github.ref_name }}"
           fi
 
-          # update data
-          echo $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/update.json
-          wget -q $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/update.json || echo '{"version": "", "versionCode": "", "zipUrl": "", "changelog": ""}' > update.json
-          cat update.json
-
           # update.json
           cat > update.json <<EOF
           {
