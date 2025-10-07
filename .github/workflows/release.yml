@@ -50,26 +50,27 @@ jobs:
       # Update module.prop
       - name: Update module.prop
         run: |
+          # Build Info
+          BUILD_DATE=$(date +"%Y-%m-%d %H:%M:%S")
+          BUILD_TIMESTAMP=$(date +%s)
+          VERSION_STRING="${{ github.ref_name }} ($BUILD_DATE)"
+          VERSION_CODE="$UNIX_TIMESTAMP"
+
+
           # Set version
           echo "Set version"
           if grep -q "^version=" "$MODULE_PROP"; then
             # override
-            sed -i "s|^version=.*|version=${{ github.ref_name }}|" "$MODULE_PROP"
+            sed -i "s|^version=.*|version=$VERSION_STRING|" "$MODULE_PROP"
           else
             # append
-            echo "version=${{ github.ref_name }}" >> "$MODULE_PROP"
+            echo "version=$VERSION_STRING" >> "$MODULE_PROP"
           fi
 
 
           # Set version code
           echo "Set version code"
-          #VERSION_CODE=$(date +"%Y%m%d")
-          VERSION_CODE=0
           if grep -q "^versionCode=" "$MODULE_PROP"; then
-            # get new next version
-            VERSION_CODE=$(grep "^versionCode=" "$MODULE_PROP" | cut -d '=' -f 2)
-            VERSION_CODE=$((VERSION_CODE + 1))
-
             # override
             sed -i "s|^versionCode=.*|versionCode=$VERSION_CODE|" "$MODULE_PROP"
           else
@@ -154,20 +155,20 @@ jobs:
           gh release upload ${{ github.ref_name }} build/* --clobber
 
 
-      # Step 11: Commit UPDATE
-      - name: Commit and Push update
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Menyiapkan Git user
-          git config --global user.email "action@github.com"
-          git config --global user.name "github-actions[bot]"
+      # # Step 11: Commit UPDATE
+      # - name: Commit and Push update
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     # Menyiapkan Git user
+      #     git config --global user.email "action@github.com"
+      #     git config --global user.name "github-actions[bot]"
 
-          # Pastikan berada di branch main
-          git checkout master
+      #     # Pastikan berada di branch main
+      #     git checkout master
 
-          # Commit hanya file update.json
-          git commit -am "${{ github.ref_name }}" || echo "Tidak ada perubahan untuk di-commit."
+      #     # Commit hanya file update.json
+      #     git commit -am "${{ github.ref_name }}" || echo "Tidak ada perubahan untuk di-commit."
 
-          # Push perubahan ke remote branch release
-          git push origin master
+      #     # Push perubahan ke remote branch release
+      #     git push origin master

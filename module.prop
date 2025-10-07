@@ -1,7 +1,7 @@
 id=box-airplane
 name=Box Airplane
-version=v0.0.3
-versionCode=3
+version=vX.X.X (dev latest)
+versionCode=0
 author=kangsunu
 description=[*] Auto Airplane Mode when no internet (for BFR/BFM)
 updateJson=https://github.com/sunuazizrahayu/box-airplane/releases/latest/download/update.json
