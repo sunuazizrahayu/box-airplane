@@ -124,19 +124,18 @@ jobs:
             VERSION="${{ github.ref_name }}"
           fi
 
-          # update data
-          echo $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/update.json
-          wget -q $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/update.json || echo '{"version": "", "versionCode": "", "zipUrl": "", "changelog": ""}' > update.json
-          cat update.json
+          # update.json
+          cat > update.json <<EOF
+          {
+            "version": "$VERSION",
+            "versionCode": "$VERSION_CODE",
+            "zipUrl": "$DLURL",
+            "changelog": "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/latest/download/CHANGELOG.md"
+          }
+          EOF
 
-          UPDATE_JSON_FILE="update.json"
-          sed -i "s|\"version\": \".*\"|\"version\": \"$VERSION\"|" $UPDATE_JSON_FILE
-          sed -i "s|\"versionCode\": \".*\"|\"versionCode\": \"$VERSION_CODE\"|" $UPDATE_JSON_FILE
-          sed -i "s|\"zipUrl\": \".*\"|\"zipUrl\": \"$DLURL\"|" $UPDATE_JSON_FILE
-          sed -i "s|\"changelog\": \".*\"|\"changelog\": \"$CHANGEURL\"|" $UPDATE_JSON_FILE
-          
           echo "Result:"
-          cat $UPDATE_JSON_FILE
+          cat update.json
           mv update.json build/
 
 
