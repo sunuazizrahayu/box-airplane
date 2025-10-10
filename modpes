@@ -37,6 +37,17 @@ log_message() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$log_file"
 }
 
+toggle_airplane_mode() {
+    log_message "[DEBUG] Cycling airplane mode"
+
+    cmd connectivity airplane-mode enable
+    #sleep 2
+    cmd connectivity airplane-mode disable
+
+    log_message "[INFO] Renewing iptables"
+    $MODDIR/iptables renew
+}
+
 
 
 # Set airplane mode radios
@@ -80,15 +91,11 @@ while true; do
         done
 
         if ! $internet_available; then
-            log_message "[INFO] No internet connection! Enabling airplane mode..."
-            cmd connectivity airplane-mode enable
-            #sleep 2
-            cmd connectivity airplane-mode disable
+            log_message "[INFO] No internet connection! Reset connection"
+            toggle_airplane_mode
+
             log_message "[INFO] Wait until mobile data active..."
             until [[ -n $(dumpsys telephony.registry | grep "mDataConnectionState=2" | awk '{print $NF}') ]]; do sleep 1; done
-            log_message "[INFO] Renewing iptables"
-            $MODDIR/iptables renew
-            #sleep 5
 
             current_time=$(date +"%H:%M")
             update_description "🚀 Service is running | ⌛️ $current_time"
