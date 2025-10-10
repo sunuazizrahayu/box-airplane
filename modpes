@@ -38,8 +38,19 @@ log_message() {
 }
 
 
+
 # Set airplane mode radios
 settings put global airplane_mode_radios $AIRPLANE_MODE_RADIOS
+
+# wait until mobile data active
+while true; do
+    if [[ -n $(dumpsys telephony.registry | grep "mDataConnectionState=2") ]]; then
+        break
+    else
+        log_message "[INFO] Wait mobile data active..."
+        sleep 3
+    fi
+done
 
 # --- Run Main Loop ---
 while true; do
