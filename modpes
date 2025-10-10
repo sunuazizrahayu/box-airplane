@@ -3,7 +3,6 @@
 MODDIR=${0%/*}
 
 # Default configuration values
-has_started=false
 CURL=$(command -v curl || echo "$MODDIR/curl")
 BFR_PID=/data/adb/box/run/box.pid
 log_file="$MODDIR/modpes.log"
@@ -50,6 +49,9 @@ toggle_airplane_mode() {
 
 
 
+# initial description on first run
+update_description "⚠️ Service not running"
+
 # Set airplane mode radios
 settings put global airplane_mode_radios $AIRPLANE_MODE_RADIOS
 
@@ -63,6 +65,9 @@ while true; do
     fi
 done
 
+# update description when service running
+update_description "🚀 Service is running"
+
 # --- Run Main Loop ---
 while true; do
     source $MODDIR/config.ini
@@ -71,10 +76,6 @@ while true; do
     is_calling=$(dumpsys telephony.registry | grep -q "mCallState=2" && echo true || echo false)
  
     if $ENABLED && ! $is_calling && bfr_running; then
-        if ! $has_started; then
-            update_description "🚀 Service is running"
-            has_started=true
-        fi
 
         while [[ $retries -lt $MAX_RETRY ]]; do
             response=$($CURL --insecure --max-time $TIMEOUT -fsL -o /dev/null -w "%{http_code}" $PING_URL)
